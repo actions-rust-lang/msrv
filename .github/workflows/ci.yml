@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  merge_group:
+    types: [checks_requested]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  msrv:
+    name: MSRV
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Determine MSRV
+        id: msrv
+        uses: ./
+        with:
+          manifest-path: ./test-workspace/Cargo.toml
+
+    outputs:
+      msrv: "${{ steps.msrv.outputs.msrv }}"
+
+  build:
+    needs: msrv
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - { name: msrv, version: "${{ needs.msrv.outputs.msrv }}" }
+          - { name: stable, version: stable }
+
+    name: Test / ${{ matrix.toolchain.name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain.version }}
+          cache-workspaces: ./test-workspace
+
+      - name: Test
+        run: cargo run --manifest-path=./test-workspace/Cargo.toml
+
+  combined:
+    runs-on: ubuntu-latest
+
+    name: Test Combined
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache: false
+
+      - name: Determine MSRV
+        id: msrv
+        uses: ./
+        with:
+          manifest-path: ./test-workspace/Cargo.toml
+
+      - name: Install Rust (MSRV)
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.msrv.outputs.msrv }}
+          cache-workspaces: ./test-workspace
+
+      - name: Test
+        run: cargo run --manifest-path=./test-workspace/Cargo.toml
