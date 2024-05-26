@@ -3,6 +3,10 @@ name: Determine minimum supported Rust version (MSRV) for workspace
 description: |
   Determine minimum supported Rust version (MSRV) for workspace for use in a job matrix.
 
+branding:
+  icon: info
+  color: orange
+
 inputs:
   manifest-path:
     description: Path to Cargo.toml manifest for workspace
