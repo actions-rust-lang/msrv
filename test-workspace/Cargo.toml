@@ -1,0 +1,9 @@
+[package]
+name = "crate"
+version = "1.0.0"
+publish = false
+edition = "2018"
+rust-version = "1.72"
+
+[dependencies]
+detrim = "0.1"
