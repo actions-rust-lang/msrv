@@ -30,6 +30,7 @@ jobs:
 
       - name: Read MSRV from workspace manifest
         id: read_msrv
+        shell: bash
         run: |
           cargo metadata --format-version=1 \
           | jq -r 'first(.packages[] | select(.source == null and .rust_version)) | .rust_version' \
