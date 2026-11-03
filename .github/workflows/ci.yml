@@ -19,7 +19,7 @@ jobs:
   msrv:
     name: MSRV
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     steps:
       - name: Checkout
